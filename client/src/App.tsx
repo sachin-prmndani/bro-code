@@ -1,17 +1,24 @@
 import React from 'react'
 import Home from './pages/Home'
+import ArenaFields from './pages/ArenaFields'
 import ArenaButton from './components/ArenaButton'
+import CodeEditor from './components/CodeEditor'
+import { Route, Routes } from 'react-router-dom'
 
 function App() {
   return (
-    <div style={{ margin: 0, padding: 0 }}>
-      <Home/>
-      <div style={{display:'grid',placeItems:'center',minHeight:'vh'}}>
-       
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route
+        path="/arena"
+        element={
+          <div>
+            <ArenaFields arenaName="1vs1" />
 
-      </div>
-      
-    </div>
+          </div>
+        }
+      />
+    </Routes>
   )
 }
 

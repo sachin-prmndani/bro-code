@@ -1,6 +1,11 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom';
+interface ArenaButtonProps {
+  buttonName: string;
+}
+function ArenaButton({buttonName}: ArenaButtonProps) {
+  const navigate = useNavigate();
 
-function ArenaButton() {
   return (
     <div>
         <button
@@ -27,9 +32,9 @@ function ArenaButton() {
           (e.target as HTMLButtonElement).style.boxShadow = '0 0 20px #FF4500, 0 0 40px #8B0000, inset 0 1px 0 #FF6347'
           ;(e.target as HTMLButtonElement).style.background = 'linear-gradient(180deg, #8B0000 0%, #3B0000 100%)'
         }}
-        onClick={() => console.log('Start 1v1 Arena') }//TODO:pass the arenaFields over here
+         //TODO:pass the arenaFields over here
       >
-        ⚔ 1 VS 1 ARENA
+        {buttonName}
       </button>
 
     </div>

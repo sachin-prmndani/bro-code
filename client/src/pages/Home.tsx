@@ -1,8 +1,9 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Banner from '../assets/Banner.png'
 import ArenaButton from '../components/ArenaButton'
 
-
+import JoinRoom from '../components/JoinRoom'
 
 function Home() {
   return (
@@ -11,7 +12,11 @@ function Home() {
         <img src={Banner} alt="" style={{ width: '100%', height: '180px', display: 'block' }} />
       </div>
       <div style={{display:'grid',placeItems:'center'}}>
-        <ArenaButton/>
+        <Link to="/arena">
+          <ArenaButton buttonName="⚔ 1 VS 1 ARENA" />
+        </Link>
+        <JoinRoom/>
+
       </div>
     </div>
 
