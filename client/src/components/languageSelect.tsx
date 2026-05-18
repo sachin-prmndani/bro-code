@@ -1,18 +1,33 @@
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 import React from 'react'
 import languages from '../constants'
-function languageSelect() {
+
+function LanguageSelect() {
   return (
-    <div>
-        <select name="" id="" >
-             {
-                languages.map((language)=>(
-                    <option key={language}>{language}</option>
-                ))
-             }
-        </select>
-         
-    </div>
+    <Select>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Theme" />
+      </SelectTrigger>
+
+      <SelectContent>
+        <SelectGroup>
+          {Object.keys(languages).map((key) => (
+            <SelectItem key={key} value={key}>
+              {key}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   )
 }
 
-export default languageSelect
+export default LanguageSelect

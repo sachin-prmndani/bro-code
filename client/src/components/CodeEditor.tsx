@@ -1,20 +1,33 @@
-import React, { useState } from 'react'
-import reactDOM from 'react-dom'
+import React, { useRef, useState } from 'react'
 import { Editor } from '@monaco-editor/react'
+import LanguageSelect from './LanguageSelect'
 
+function CodeEditor() {
+  const editorRef = useRef(null)
 
-function codeEditor() {
-    const [value,setValue] = useState('');
+  const onMount = (editor) => {
+    editorRef.current = editor
+    editor.focus()
+  }
+
+  const [value, setValue] = useState('')
+
   return (
-    <div style={{alignContent:'right'}}>
-         <Editor height="90vh"
-          defaultLanguage='javascript' 
-          defaultValue='//some comment'
-          value={value}
-          onChange={(value)=>setValue(value)}
-          ></Editor>
+   
+
+    <div style={{ textAlign: 'right' }}>
+       <LanguageSelect/>
+      <Editor
+        height="90vh"
+        defaultLanguage="javascript"
+        defaultValue="//some comment"
+        // theme="vs-dark"
+        value={value}
+        onMount={onMount}
+        onChange={(value) => setValue(value)}
+      />
     </div>
   )
 }
 
-export default codeEditor
+export default CodeEditor

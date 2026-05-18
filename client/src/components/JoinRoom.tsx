@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import '../css/joinRoom.css';
-
+import { useNavigate } from 'react-router-dom';
 function JoinRoom() {
+const navigate = useNavigate()
+
   const [showModal, setShowModal] = useState(false);
   const [roomId, setRoomId] = useState("");
   const [cfHandle, setCfHandle] = useState("");
@@ -12,7 +14,7 @@ function JoinRoom() {
       return;
     }
     console.log("Joining room:", roomId, "as:", cfHandle);
-    // your join logic here, e.g: navigate(`/room/${roomId}`)
+     navigate(`/room/editor`)
     setShowModal(false);
   };
 
