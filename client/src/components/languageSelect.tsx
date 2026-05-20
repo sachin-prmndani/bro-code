@@ -7,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import React from 'react'
 import languages from '../constants'
 
 function LanguageSelect() {

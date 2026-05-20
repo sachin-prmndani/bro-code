@@ -1,11 +1,7 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom';
 interface ArenaButtonProps {
   buttonName: string;
 }
 function ArenaButton({buttonName}: ArenaButtonProps) {
-  const navigate = useNavigate();
-
   return (
     <div>
         <button

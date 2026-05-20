@@ -1,11 +1,11 @@
-import React, { useRef, useState } from 'react'
-import { Editor } from '@monaco-editor/react'
+import { useRef, useState } from 'react'
+import { Editor, type OnMount } from '@monaco-editor/react'
 import LanguageSelect from './LanguageSelect'
 
 function CodeEditor() {
-  const editorRef = useRef(null)
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null)
 
-  const onMount = (editor) => {
+  const onMount: OnMount = (editor) => {
     editorRef.current = editor
     editor.focus()
   }
@@ -24,7 +24,7 @@ function CodeEditor() {
         // theme="vs-dark"
         value={value}
         onMount={onMount}
-        onChange={(value) => setValue(value)}
+        onChange={(value) => setValue(value ?? '')}
       />
     </div>
   )
