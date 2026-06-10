@@ -1,6 +1,8 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Editor, type OnMount } from '@monaco-editor/react';
+import { ChartNoAxesCombined } from 'lucide-react';
+
 
 interface Problem {
   name: string;
@@ -26,6 +28,52 @@ function Solving() {
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const [code, setCode] = useState('// write your solution here\n');
   const [language, setLanguage] = useState('cpp');
+
+  // --- NEW I/O & EXECUTION STATES ---
+  const [customInput, setCustomInput] = useState('');
+  const [output, setOutput] = useState('');
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [isSubmitted,setIsSubmitted]=useState(false);
+
+
+  // --- BACKEND CONNECTION LOGIC ---
+  const handleRunCode = async () => {
+    if (!code.trim()) return;
+
+    setIsExecuting(true);
+    setOutput('SYSTEM: COMPILING AND RUNNING...\n');
+
+    try {
+      // Replace with your actual backend endpoint
+      const response = await fetch('http://localhost:3000/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language, stdin: customInput }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setOutput(data.output || 'Execution successful with no output.');
+      } else {
+        setOutput(data.error || 'Compilation or Execution Error');
+      }
+    } catch (error) {
+      console.error(error);
+      setOutput('SYSTEM ERROR: Failed to connect to the execution server.');
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    // Connect to your submission endpoint here
+    console.log("Submitting for final evaluation...");
+    setIsSubmitted(true);
+    
+    
+    
+  };
 
   if (!state) {
     return (
@@ -73,7 +121,7 @@ function Solving() {
       {/* ── MAIN SPLIT ── */}
       <div style={styles.mainSplit}>
 
-        {/* ── LEFT: PROBLEM PANEL ── */}
+        {/* ── LEFT: PROBLEM PANEL (Decreased Size) ── */}
         <div style={styles.problemPanel}>
 
           {/* Problem header */}
@@ -94,7 +142,7 @@ function Solving() {
             ))}
           </div>
 
-          {/* Open on CF CTA — big retro card since we can't iframe */}
+          {/* Open on CF CTA */}
           <div style={styles.cfCard}>
             <div style={styles.cfCardGlitch}>CODEFORCES BLOCKS EMBEDDING</div>
             <div style={styles.cfCardSub}>open the problem in a new tab to read it</div>
@@ -136,7 +184,6 @@ function Solving() {
               </div>
             </div>
 
-            {/* Scanline decoration */}
             <div style={styles.scanlines} />
           </div>
         </div>
@@ -144,44 +191,92 @@ function Solving() {
         {/* ── DIVIDER ── */}
         <div style={styles.divider} />
 
-        {/* ── RIGHT: EDITOR PANEL ── */}
+        {/* ── RIGHT: EDITOR & I/O PANEL (Increased Size) ── */}
         <div style={styles.editorPanel}>
+          
           <div style={styles.editorHeader}>
             <span style={{ color: '#39ff14', fontSize: '0.65rem', fontFamily: '"Press Start 2P", monospace' }}>
               ▶ CODE
             </span>
-            <select
-              value={language}
-              onChange={e => setLanguage(e.target.value)}
-              style={styles.langSelect}
-            >
-              {LANGUAGES.map(l => (
-                <option key={l} value={l}>{l.toUpperCase()}</option>
-              ))}
-            </select>
+            
+            {/* Added Action Buttons & Language Select to Header */}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+                style={styles.langSelect}
+              >
+                {LANGUAGES.map(l => (
+                  <option key={l} value={l}>{l.toUpperCase()}</option>
+                ))}
+              </select>
+
+              <button 
+                onClick={handleRunCode} 
+                disabled={isExecuting}
+                style={isExecuting ? styles.btnDisabled : styles.btnRun}
+              >
+                {isExecuting ? 'RUNNING...' : 'RUN'}
+              </button>
+              
+              <button onClick={handleSubmit} style={styles.btnSubmit}>
+                SUBMIT
+              </button>
+            </div>
           </div>
 
-          <Editor
-            height="calc(100vh - 84px)"
-            language={language}
-            value={code}
-            theme="vs-dark"
-            onMount={editor => {
-              editorRef.current = editor;
-              editor.focus();
-            }}
-            onChange={val => setCode(val ?? '')}
-            options={{
-              fontSize: 14,
-              fontFamily: '"Fira Code", "Cascadia Code", monospace',
-              fontLigatures: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              lineNumbers: 'on',
-              renderLineHighlight: 'line',
-              padding: { top: 12 },
-            }}
-          />
+          {/* Editor Wrapper (takes remaining space above I/O) */}
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <Editor
+              height="100%"
+              language={language}
+              value={code}
+              theme="vs-dark"
+              onMount={editor => {
+                editorRef.current = editor;
+                editor.focus();
+              }}
+              onChange={val => setCode(val ?? '')}
+              options={{
+                fontSize: 16, // Slightly increased font for readability
+                fontFamily: '"Fira Code", "Cascadia Code", monospace',
+                fontLigatures: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbers: 'on',
+                renderLineHighlight: 'line',
+                padding: { top: 12 },
+              }}
+            />
+          </div>
+
+          {/* ── BOTTOM: INPUT & OUTPUT PANEL ── */}
+          <div style={styles.ioPanel}>
+            {/* Custom Input */}
+            <div style={styles.ioColumn}>
+              <div style={styles.ioHeader}>CUSTOM INPUT</div>
+              <textarea
+                style={styles.ioTextArea}
+                value={customInput}
+                onChange={(e) => setCustomInput(e.target.value)}
+                spellCheck={false}
+                placeholder="Enter custom input here..."
+              />
+            </div>
+
+            {/* Output */}
+            <div style={{ ...styles.ioColumn, borderLeft: '1px solid #1a1a1a' }}>
+              <div style={styles.ioHeader}>OUTPUT</div>
+              <textarea
+                style={{ ...styles.ioTextArea, color: output.includes('ERROR') ? '#ff2d78' : '#39ff14' }}
+                value={output}
+                readOnly
+                spellCheck={false}
+                placeholder="Execution results..."
+              />
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -237,9 +332,9 @@ const styles: Record<string, CSSProperties> = {
     overflow: 'hidden',
   },
 
-  // Problem panel
+  // Problem panel (Width reduced from 42% to 30%)
   problemPanel: {
-    width: '42%',
+    width: '30%', 
     display: 'flex',
     flexDirection: 'column',
     borderRight: '1px solid #1a1a1a',
@@ -346,6 +441,7 @@ const styles: Record<string, CSSProperties> = {
     clipPath: 'polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)',
     transition: 'all 0.15s ease',
     zIndex: 1,
+    textAlign: 'center',
   },
   infoGrid: {
     display: 'grid',
@@ -400,7 +496,7 @@ const styles: Record<string, CSSProperties> = {
   },
   langSelect: {
     background: '#1a1a1a',
-    color: '#39ff14',
+    color: '#ccc',
     border: '1px solid #333',
     fontFamily: '"Press Start 2P", monospace',
     fontSize: '0.5rem',
@@ -408,6 +504,70 @@ const styles: Record<string, CSSProperties> = {
     cursor: 'pointer',
     outline: 'none',
   },
+
+  // New Button Styles
+  btnRun: {
+    background: '#003300',
+    color: '#39ff14',
+    border: '1px solid #39ff14',
+    fontFamily: '"Press Start 2P", monospace',
+    fontSize: '0.5rem',
+    padding: '6px 12px',
+    cursor: 'pointer',
+    boxShadow: '0 0 5px #39ff1444',
+  },
+  btnDisabled: {
+    background: '#111',
+    color: '#555',
+    border: '1px solid #333',
+    fontFamily: '"Press Start 2P", monospace',
+    fontSize: '0.5rem',
+    padding: '6px 12px',
+    cursor: 'not-allowed',
+  },
+  btnSubmit: {
+    background: '#33001a',
+    color: '#ff2d78',
+    border: '1px solid #ff2d78',
+    fontFamily: '"Press Start 2P", monospace',
+    fontSize: '0.5rem',
+    padding: '6px 12px',
+    cursor: 'pointer',
+    boxShadow: '0 0 5px #ff2d7844',
+  },
+
+  // New I/O Panel Styles
+  ioPanel: {
+    height: '30%',
+    minHeight: '150px',
+    display: 'flex',
+    borderTop: '2px solid #1a1a1a',
+    background: '#0a0a0a',
+  },
+  ioColumn: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  ioHeader: {
+    background: '#111',
+    color: '#aaa',
+    padding: '4px 10px',
+    fontSize: '0.6rem',
+    fontFamily: '"Press Start 2P", monospace',
+    borderBottom: '1px solid #1a1a1a',
+  },
+  ioTextArea: {
+    flex: 1,
+    background: 'transparent',
+    color: '#ddd',
+    border: 'none',
+    padding: '10px',
+    fontFamily: '"Fira Code", "Cascadia Code", monospace',
+    fontSize: '14px',
+    resize: 'none',
+    outline: 'none',
+  }
 };
 
 export default Solving;

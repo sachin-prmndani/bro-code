@@ -9,6 +9,7 @@ import cors from 'cors';
 import ENV from './ENV.js';
 import connectDB from './utils/mongoose.js';
 import { getUsableProblem } from './services/fetchProblem.js';
+import codeRoutes from '../server/routes/codeRoutes.js'
 
 const app = express();
 app.use(cors({ origin: '*' }));
@@ -113,6 +114,7 @@ io.on('connection', (socket) => {
     console.log(`[socket] disconnected: ${socket.id}`);
   });
 });
+app.use('/api',codeRoutes);
 
 app.get('/', (_req, res) => {
   res.send('Bro Code API running');
