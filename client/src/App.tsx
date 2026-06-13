@@ -2,6 +2,7 @@ import Home from './pages/Home'
 import ArenaFields from './pages/ArenaFields'
 import JoinRoom from './components/JoinRoom'
 import Solving from './pages/Solving'
+import WinnerPage from './pages/winner'
 import { Route, Routes } from 'react-router-dom'
 
 function App() {
@@ -20,6 +21,9 @@ function App() {
 
       {/* Battle page — both players redirected here by socket */}
       <Route path="/room/:roomId/battle" element={<Solving />} />
+
+      {/* Winner page after submission check */}
+      <Route path="/room/:roomId/winner" element={<WinnerPage />} />
     </Routes>
   )
 }

@@ -1,8 +1,6 @@
-import { useRef, useState, type CSSProperties } from 'react';
+import { useRef, useState, useEffect, type CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Editor, type OnMount } from '@monaco-editor/react';
-import { ChartNoAxesCombined } from 'lucide-react';
-
 
 interface Problem {
   name: string;
@@ -29,12 +27,10 @@ function Solving() {
   const [code, setCode] = useState('// write your solution here\n');
   const [language, setLanguage] = useState('cpp');
 
-  // --- NEW I/O & EXECUTION STATES ---
   const [customInput, setCustomInput] = useState('');
   const [output, setOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
-  const [isSubmitted,setIsSubmitted]=useState(false);
-
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // --- BACKEND CONNECTION LOGIC ---
   const handleRunCode = async () => {
@@ -44,7 +40,6 @@ function Solving() {
     setOutput('SYSTEM: COMPILING AND RUNNING...\n');
 
     try {
-      // Replace with your actual backend endpoint
       const response = await fetch('http://localhost:3000/api/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,13 +62,43 @@ function Solving() {
   };
 
   const handleSubmit = () => {
-    // Connect to your submission endpoint here
+    if (!state) return;
     console.log("Submitting for final evaluation...");
     setIsSubmitted(true);
-    
-    
-    
+    const submitUrl = `https://codeforces.com/contest/${state.problem.contestId}/submit`;
+    window.open(submitUrl, '_blank');
   };
+
+  // --- POLL FOR WINNER AFTER SUBMISSION ---
+  useEffect(() => {
+    if (!isSubmitted || !state) return;
+
+    const { problem, players } = state;
+
+    const checkSubmission = async () => {
+      try {
+        const submissionStatus = await fetch('http://localhost:3000/api/checkSubmission', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            players: [players.p1, players.p2],
+            problem: { contestId: problem.contestId, index: problem.index },
+          }),
+        });
+
+        const data = await submissionStatus.json();
+
+        if (data.winner) {
+          navigate(`/room/${location.pathname.split('/')[2]}/winner?winner=${encodeURIComponent(data.winner)}`);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const intervalId = setInterval(checkSubmission, 30000);
+    return () => clearInterval(intervalId);
+  }, [isSubmitted, state, navigate, location.pathname]);
 
   if (!state) {
     return (
@@ -121,10 +146,9 @@ function Solving() {
       {/* ── MAIN SPLIT ── */}
       <div style={styles.mainSplit}>
 
-        {/* ── LEFT: PROBLEM PANEL (Decreased Size) ── */}
+        {/* ── LEFT: PROBLEM PANEL ── */}
         <div style={styles.problemPanel}>
 
-          {/* Problem header */}
           <div style={styles.problemHeader}>
             <span style={styles.problemId}>
               {problem.contestId}{problem.index}
@@ -135,14 +159,12 @@ function Solving() {
             </span>
           </div>
 
-          {/* Tags */}
           <div style={styles.tagRow}>
             {problem.tags.map(tag => (
               <span key={tag} style={styles.tagChip}>{tag}</span>
             ))}
           </div>
 
-          {/* Open on CF CTA */}
           <div style={styles.cfCard}>
             <div style={styles.cfCardGlitch}>CODEFORCES BLOCKS EMBEDDING</div>
             <div style={styles.cfCardSub}>open the problem in a new tab to read it</div>
@@ -164,7 +186,6 @@ function Solving() {
               ▶ OPEN PROBLEM ↗
             </a>
 
-            {/* Problem info summary */}
             <div style={styles.infoGrid}>
               <div style={styles.infoBox}>
                 <div style={styles.infoLabel}>CONTEST</div>
@@ -175,7 +196,7 @@ function Solving() {
                 <div style={styles.infoValue}>{problem.index}</div>
               </div>
               <div style={styles.infoBox}>
-                <div style={styles.infoLabel}>RATING</div>
+                <div style={{ ...styles.infoLabel }}>RATING</div>
                 <div style={{ ...styles.infoValue, color: ratingColor }}>{problem.rating}</div>
               </div>
               <div style={styles.infoBox}>
@@ -191,15 +212,14 @@ function Solving() {
         {/* ── DIVIDER ── */}
         <div style={styles.divider} />
 
-        {/* ── RIGHT: EDITOR & I/O PANEL (Increased Size) ── */}
+        {/* ── RIGHT: EDITOR & I/O PANEL ── */}
         <div style={styles.editorPanel}>
-          
+
           <div style={styles.editorHeader}>
             <span style={{ color: '#39ff14', fontSize: '0.65rem', fontFamily: '"Press Start 2P", monospace' }}>
               ▶ CODE
             </span>
-            
-            {/* Added Action Buttons & Language Select to Header */}
+
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <select
                 value={language}
@@ -211,21 +231,24 @@ function Solving() {
                 ))}
               </select>
 
-              <button 
-                onClick={handleRunCode} 
+              <button
+                onClick={handleRunCode}
                 disabled={isExecuting}
                 style={isExecuting ? styles.btnDisabled : styles.btnRun}
               >
                 {isExecuting ? 'RUNNING...' : 'RUN'}
               </button>
-              
-              <button onClick={handleSubmit} style={styles.btnSubmit}>
-                SUBMIT
+
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitted}
+                style={isSubmitted ? styles.btnDisabled : styles.btnSubmit}
+              >
+                {isSubmitted ? 'WAITING...' : 'SUBMIT'}
               </button>
             </div>
           </div>
 
-          {/* Editor Wrapper (takes remaining space above I/O) */}
           <div style={{ flex: 1, minHeight: 0 }}>
             <Editor
               height="100%"
@@ -238,7 +261,7 @@ function Solving() {
               }}
               onChange={val => setCode(val ?? '')}
               options={{
-                fontSize: 16, // Slightly increased font for readability
+                fontSize: 16,
                 fontFamily: '"Fira Code", "Cascadia Code", monospace',
                 fontLigatures: true,
                 minimap: { enabled: false },
@@ -252,7 +275,6 @@ function Solving() {
 
           {/* ── BOTTOM: INPUT & OUTPUT PANEL ── */}
           <div style={styles.ioPanel}>
-            {/* Custom Input */}
             <div style={styles.ioColumn}>
               <div style={styles.ioHeader}>CUSTOM INPUT</div>
               <textarea
@@ -264,7 +286,6 @@ function Solving() {
               />
             </div>
 
-            {/* Output */}
             <div style={{ ...styles.ioColumn, borderLeft: '1px solid #1a1a1a' }}>
               <div style={styles.ioHeader}>OUTPUT</div>
               <textarea
@@ -280,6 +301,7 @@ function Solving() {
         </div>
       </div>
     </div>
+    
   );
 }
 
@@ -332,9 +354,8 @@ const styles: Record<string, CSSProperties> = {
     overflow: 'hidden',
   },
 
-  // Problem panel (Width reduced from 42% to 30%)
   problemPanel: {
-    width: '30%', 
+    width: '30%',
     display: 'flex',
     flexDirection: 'column',
     borderRight: '1px solid #1a1a1a',
@@ -393,7 +414,6 @@ const styles: Record<string, CSSProperties> = {
     letterSpacing: '0.5px',
   },
 
-  // CF card
   cfCard: {
     flex: 1,
     display: 'flex',
@@ -470,14 +490,12 @@ const styles: Record<string, CSSProperties> = {
     letterSpacing: '1px',
   },
 
-  // Divider
   divider: {
     width: '3px',
     background: 'linear-gradient(to bottom, #39ff1422, #ff2d7844, #39ff1422)',
     flexShrink: 0,
   },
 
-  // Editor panel
   editorPanel: {
     flex: 1,
     display: 'flex',
@@ -505,7 +523,6 @@ const styles: Record<string, CSSProperties> = {
     outline: 'none',
   },
 
-  // New Button Styles
   btnRun: {
     background: '#003300',
     color: '#39ff14',
@@ -536,7 +553,6 @@ const styles: Record<string, CSSProperties> = {
     boxShadow: '0 0 5px #ff2d7844',
   },
 
-  // New I/O Panel Styles
   ioPanel: {
     height: '30%',
     minHeight: '150px',

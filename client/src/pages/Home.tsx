@@ -84,9 +84,6 @@ function Home() {
           <ArenaButton buttonName="⚔ 1 VS 1 ARENA" />
         </Link>
 
-        <Link to="/room/editor">
-          <ArenaButton buttonName="OPEN EDITOR" />
-        </Link>
 
         {/* Join Room — same ArenaButton style, opens modal */}
         <div onClick={openModal}>
