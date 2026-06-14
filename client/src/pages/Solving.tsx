@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect, type CSSProperties } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Editor, type OnMount } from '@monaco-editor/react';
+import ENV from '../../ENV.js';
+
 
 interface Problem {
   name: string;
@@ -40,7 +42,7 @@ function Solving() {
     setOutput('SYSTEM: COMPILING AND RUNNING...\n');
 
     try {
-      const response = await fetch('http://localhost:3000/api/execute', {
+      const response = await fetch(`${ENV.VITE_API_URL}/api/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, language, stdin: customInput }),
@@ -77,7 +79,7 @@ function Solving() {
 
     const checkSubmission = async () => {
       try {
-        const submissionStatus = await fetch('http://localhost:3000/api/checkSubmission', {
+        const submissionStatus = await fetch(`${ENV.VITE_API_URL}/api/checkSubmission`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

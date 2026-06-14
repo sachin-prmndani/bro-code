@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
+import ENV from '../ENV.js'
 
-const socket = io(import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:3000', {
+const socket = io(ENV.VITE_API_URL, {
   autoConnect: true,
 });
 
