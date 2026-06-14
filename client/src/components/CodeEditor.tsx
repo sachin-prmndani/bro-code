@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Editor, type OnMount } from '@monaco-editor/react'
-import LanguageSelect from './LanguageSelect.jsx'
+import LanguageSelect from './LanguageSelect'
 
 function CodeEditor() {
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null)
